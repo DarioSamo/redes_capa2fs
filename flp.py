@@ -142,6 +142,8 @@ def handleFnf(data):
     sys.exit(1)
 
 def handleBlk(data):
+    global ftActiveBlocks
+    global ftProgress
     packSize = struct.calcsize(BLK_FORMAT)
     unpacked = struct.unpack(BLK_FORMAT, data[0:packSize])
     seqn = unpacked[0]
@@ -156,6 +158,7 @@ def handleBlk(data):
     print "Received BLK message with seqn",seqn,"from the remote path",remotePath,"with data block",block
 
 def checkActiveFt(dest):
+    global ftActiveBlocks
     if len(ftProgress) > 0:
         finished = True
         for i in range(0, len(ftProgress)):
