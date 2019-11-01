@@ -1,4 +1,4 @@
-#from rawsocketpy import RawSocket, RawRequestHandler, RawAsyncServerCallback
+from rawsocketpy import RawSocket, RawRequestHandler, RawAsyncServer
 import sys
 import os
 
@@ -132,7 +132,8 @@ def getdir(interface, mac):
     rawSocket = RawSocket(interface, ETHER_TYPE)
     messageByteArray = bytearray()
     messageByteArray.append(GETDIR)
-    rawSocket.send(messageByteArray, mac)
+    macDecoded = mac.replace(':', '').decode('hex')
+    rawSocket.send(messageByteArray, macDecoded)
     rawServer = RawAsyncServer(interface, ETHER_TYPE, SharingHandler)
     rawServer.spin()
 
@@ -142,7 +143,8 @@ def getfile(interface, mac, remotepath, localpath):
     messageByteArray.append(GETFILE)
     messageByteArray.append(remotepath)
     messageByteArray.append(0)
-    rawSocket.send(messageByteArray, mac)
+    macDecoded = mac.replace(':', '').decode('hex')
+    rawSocket.send(messageByteArray, macDecoded)
     rawServer = RawAsyncServer(interface, ETHER_TYPE, SharingHandler)
     rawServer.spin()
 
