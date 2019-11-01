@@ -6,10 +6,13 @@ import sys
 # Configuration
 MOUNTS_LIST = 'mounts.flp'
 SEQUENCE_SIZE = 1024
+MAX_ACTIVE_BLOCKS = 5
 
 # Constants
 ETHER_TYPE = 0xEEFA
 FILE_FORMAT = 'QHI'
+GETBLK_FORMAT = 'I'
+BLK_FORMAT = 'I'
 
 # Message headers
 GETDIR  = '\x10'
@@ -24,10 +27,12 @@ BLK     = '\x31'
 rawSocket = None
 rawServer = None
 ftPath = ''
+ftRemotePath = ''
 ftSeqSize = 0
 ftSize = 0
 ftHash = None
-ftProgress = list()
+ftProgress = []
+ftActiveBlocks = MAX_ACTIVE_BLOCKS
 
 def decodeStr(data):
     return data.decode("utf-8").partition(b'\0')[0]
@@ -83,10 +88,30 @@ def handleGetfile(data, dest):
     rawSocket.send(message, dest)
 
 def handleGetblk(data, dest):
-    print "Received GETBLK message"
-    message = bytearray()
-    message.append(BLK)
-    rawSocket.send(message, dest)
+    replyMessage = bytearray()
+    packSize = struct.calcsize(GETBLK_FORMAT)
+    unpacked = struct.unpack(GETBLK_FORMAT, data[0:packSize])
+    seqn = unpacked[0]
+    remotePath = decodeStr(data[packSize:])
+    if os.path.isfile(remotepath):
+        file = open(remotepath, 'r')
+        file.seek(seqn * SEQUENCE_SIZE)
+        block = file.read(SEQUENCE_SIZE)
+        file.close()
+
+        replyMessage.append(BLK)
+        replyMessage.extend(struct.pack(BLK_FORMAT, seqn))
+        replyMessage.extend(block)
+        blockPadding = SEQUENCE_SIZE - len(block)
+        if blockPadding > 0:
+            replyMessage.extend([b'\0'] * blockPadding)
+
+        replyMessage.extend(remotepath.encode("utf-8"))
+    else:
+        replyMessage.append(FNF)
+        replyMessage.extend(remotepath.encode("utf-8"))
+        
+    rawSocket.send(replyMessage, dest)
 
 def handleDir(data):
     remotePath = decodeStr(data)
@@ -117,7 +142,35 @@ def handleFnf(data):
     sys.exit(1)
 
 def handleBlk(data):
-    print "Received BLK message"
+    packSize = struct.calcsize(BLK_FORMAT)
+    unpacked = struct.unpack(BLK_FORMAT, data[0:packSize])
+    seqn = unpacked[0]
+    blockEnd = packSize + SEQUENCE_SIZE
+    block = data[packSize:blockEnd]
+    remotePath = decodeStr(data[blockEnd:])
+    if ftRemotePath == remotePath:
+        ftProgress[seqn] = True
+        ftActiveBlocks += 1
+        print "Valid BLK transfer"
+
+    print "Received BLK message with seqn",seqn,"from the remote path",remotePath,"with data block",block
+
+def checkActiveFt(dest):
+    if len(ftProgress) > 0:
+        finished = True
+        for i in range(0, len(ftProgress)):
+            if not ftProgress[i]:
+                finished = False
+                if ftActiveBlocks > 0:
+                    message.append(GETBLK)
+                    message.extend(struct.pack(GETBLK_FORMAT, i))
+                    message.extend(ftRemotePath.encode("utf-8"))
+                    rawSocket.send(message, dest)
+                    ftActiveBlocks -= 1
+        
+        if finished:
+            # TODO Perform CRC Check on File.
+            sys.exit()
 
 class SharingHandler(RawRequestHandler):
     def handle(self):
@@ -133,12 +186,14 @@ class SharingHandler(RawRequestHandler):
             handleDir(data)
         elif header == FILE:
             handleFile(data)
+            checkActiveFt(self.packet.src)
         elif header == FNF:
             handleFnf(data)
         elif header == BLK:
             handleBlk(data)
+            checkActiveFt(self.packet.src)
         else:
-            print "Received unknown header", header
+            print "Received unknown header", header 
 
 def startRawServer(interface):
     global rawServer
@@ -208,12 +263,14 @@ def getdir(interface, mac):
 
 def getfile(interface, mac, remotepath, localpath):
     global ftPath
+    global ftRemotePath
     global rawSocket
     rawSocket = RawSocket(interface, ETHER_TYPE)
     message = bytearray()
     message.append(GETFILE)
     message.extend(remotepath.encode("utf-8"))
     ftPath = localpath
+    ftRemotePath = remotepath
     macDecoded = mac.replace(':', '').decode('hex')
     rawSocket.send(message, macDecoded)
     startRawServer(interface)
