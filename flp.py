@@ -33,64 +33,72 @@ def showHelp():
     print('getfile <interface> <mac> <remotepath> <localpath>')
     print(" Download the file at <remotepath> from the server at <interface> <mac> and save it to <localpath>.")
 
-def handleGetdir(packet, dest):
+def handleGetdir(dest):
     print "Received GETDIR message"
+
+    # Read mounts file to get current directories.
     if os.path.isfile(MOUNTS_LIST):
         file = open(MOUNTS_LIST, "r")
         for line in file:
-            path = line.rstrip()
-            
-            message = bytearray()
-            message.append(DIR)
-            message.extend(path)
-            rawSocket.send(message, dest)
+            mountPath = line.rstrip()
 
-    # Send a message which indicates no more entries are available.
+            # Search for all files in each directory and send a DIR message back for each one.
+            for file in os.listdir(mountPath):
+                filePath = os.path.join(mountPath, file)
+                if os.path.isfile(filePath):
+                    message = bytearray()
+                    message.append(DIR)
+                    message.extend(filePath)
+                    rawSocket.send(message, dest)
+
+    # Send an empty DIR message which indicates no more entries are available.
     message = bytearray()
     message.append(DIR)
     rawSocket.send(message, dest)
 
-def handleGetfile(packet, dest):
+def handleGetfile(data, dest):
     print "Received GETFILE message"
     message = bytearray()
     message.append(FILE)
     rawSocket.send(message, dest)
 
-def handleGetblk(packet, dest):
+def handleGetblk(data, dest):
     print "Received GETBLK message"
     message = bytearray()
     message.append(BLK)
     rawSocket.send(message, dest)
 
-def handleDir(packet):
+def handleDir(data):
     print "Received DIR message"
+    print data
 
-def handleFile(packet):
+def handleFile(data):
     print "Received FILE message"
     
-def handleFnf(packet):
+def handleFnf(data):
     print "Received FNF message"
     
-def handleBlk(packet):
+def handleBlk(data):
     print "Received BLK message"
 
 class SharingHandler(RawRequestHandler):
     def handle(self):
         header = self.packet.data[0]
+        data = self.packet.data[1:]
         if header == GETDIR:
-            handleGetdir(self.packet.data, self.packet.src)
+            handleGetdir(self.packet.src)
         elif header == GETFILE:
-            handleGetfile(self.packet.data, self.packet.src)
+            handleGetfile(data, self.packet.src)
         elif header == GETBLK:
-            handleGetblk(self.packet.data, self.packet.src)
+            handleGetblk(data, self.packet.src)
         elif header == DIR:
-            handleDir(self.packet.data)
+            handleDir(data)
         elif header == FILE:
-            handleFile(self.packet.data)
+            handleFile(data)
         elif header == FNF:
-            handleFnf(self.packet.data)
+            handleFnf(data)
         elif header == BLK:
-            handleBlk(self.packet.data)
+            handleBlk(data)
         else:
             print "Received unknown header", header
 
