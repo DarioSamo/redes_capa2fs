@@ -34,8 +34,6 @@ def showHelp():
     print(" Download the file at <remotepath> from the server at <interface> <mac> and save it to <localpath>.")
 
 def handleGetdir(dest):
-    print "Received GETDIR message"
-
     # Read mounts file to get current directories.
     if os.path.isfile(MOUNTS_LIST):
         file = open(MOUNTS_LIST, "r")
@@ -69,8 +67,8 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    path = data.decode()
-    if path == '':
+    path = data.decode().strip()
+    if not path:
         print "> END"
         rawServer.running = False
     else:
