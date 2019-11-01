@@ -69,11 +69,12 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    if len(data) > 1:
-        print ">", data
-    else:
+    path = data.decode()
+    if path == '':
         print "> END"
         rawServer.running = False
+    else:
+        print ">", data
 
 def handleFile(data):
     print "Received FILE message"
@@ -87,7 +88,8 @@ def handleBlk(data):
 class SharingHandler(RawRequestHandler):
     def handle(self):
         header = self.packet.data[0]
-        data = self.packet.data[1:]
+        data = self.packet.data
+        del data[0]
         if header == GETDIR:
             handleGetdir(self.packet.src)
         elif header == GETFILE:
