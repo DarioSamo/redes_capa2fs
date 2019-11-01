@@ -152,12 +152,11 @@ def handleBlk(data):
     packSize = struct.calcsize(BLK_FORMAT)
     unpacked = struct.unpack(BLK_FORMAT, data[0:packSize])
     seqn = unpacked[0]
+    blockEnd = packSize + ftSeqSize
     rest = (ftSize % ftSeqSize)
     if seqn == (len(ftProgress) - 1) and rest > 0:
         blockEnd = packSize + rest
-    else:
-        blockEnd = packSize + ftSeqSize
-
+        
     block = data[packSize:blockEnd]
     pathStart = packSize + ftSeqSize
     remotePath = decodeStr(data[pathStart:])
