@@ -7,8 +7,9 @@ import sys
 MOUNTS_LIST = 'mounts.flp'
 SEQUENCE_SIZE = 1024
 
-# RawSocket constants
+# Constants
 ETHER_TYPE = 0xEEFA
+FILE_FORMAT = 'QHI'
 
 # Message headers
 GETDIR  = '\x10'
@@ -69,7 +70,7 @@ def handleGetfile(data, dest):
         filesize = os.path.getsize(remotepath)
         filehash = 123456789
         message.append(FILE)
-        message.extend(struct.pack("QHI", filesize, SEQUENCE_SIZE, filehash))
+        message.extend(struct.pack(FILE_FORMAT, filesize, SEQUENCE_SIZE, filehash))
         message.extend(remotepath.encode("utf-8"))
     else:
         message.append(FNF)
@@ -92,11 +93,12 @@ def handleDir(data):
         print ">", remotepath
 
 def handleFile(data):
-    unpacked = struct.unpack("QHI", data[0:14])
+    packsize = struct.calcsize(FILE_FORMAT)
+    unpacked = struct.unpack(FILE_FORMAT, data[0:packsize])
     filesize = unpacked[0]
     seqsize = unpacked[1]
     filehash = unpacked[2]
-    remotepath = decodeStr(data[14:])
+    remotepath = decodeStr(data[packsize:])
     print "Received FILE message with size",filesize,"sequence size",seqsize,"hash",filehas,"from the remote path",remotepath
 
 def handleFnf(data):
