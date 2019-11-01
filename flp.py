@@ -69,7 +69,7 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    if data.count() > 0:
+    if len(data) > 0:
         print ">", data
     else:
         print "> END"
@@ -104,12 +104,6 @@ class SharingHandler(RawRequestHandler):
             handleBlk(data)
         else:
             print "Received unknown header", header
-
-    def finish(self):
-        print("End")
-
-    def setup(self):
-        print("Begin")
 
 def startRawServer(interface):
     global rawServer
