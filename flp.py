@@ -99,7 +99,7 @@ def handleFile(data):
     seqsize = unpacked[1]
     filehash = unpacked[2]
     remotepath = decodeStr(data[packsize:])
-    print "Received FILE message with size",filesize,"sequence size",seqsize,"hash",filehas,"from the remote path",remotepath
+    print "Received FILE message with size",filesize,"sequence size",seqsize,"hash",filehash,"from the remote path",remotepath
 
 def handleFnf(data):
     remotepath = decodeStr(data)
