@@ -9,13 +9,13 @@ MOUNTS_LIST = 'mounts.flp'
 ETHER_TYPE = 0xEEFA
 
 # Message headers
-GETDIR  = 0x10
-DIR     = 0x11
-GETFILE = 0x20
-FILE    = 0x21
-FNF     = 0x22
-GETBLK  = 0x30
-BLK     = 0x31
+GETDIR  = '\x10'
+DIR     = '\x11'
+GETFILE = '\x20'
+FILE    = '\x21'
+FNF     = '\x22'
+GETBLK  = '\x30'
+BLK     = '\x31'
 
 rawSocket = 0
 rawServer = 0
@@ -34,13 +34,17 @@ def showHelp():
     print(" Download the file at <remotepath> from the server at <interface> <mac> and save it to <localpath>.")
 
 def handleGetdir(packet, dest):
-    print "Received GETDIR message from", dest
+    print "Received GETDIR message"
+    messageByteArray.append(DIR)
+    messageByteArray.append('mydirectory')
+    messageByteArray.append(0)
+    rawSocket.send(messageByteArray, dest)
 
 def handleGetfile(packet, dest):
-    print "Received GETFILE message from", dest
+    print "Received GETFILE message"
 
 def handleGetblk(packet, dest):
-    print "Received GETBLK message from", dest
+    print "Received GETBLK message"
 
 def handleDir(packet):
     print "Received DIR message"
@@ -72,7 +76,7 @@ class SharingHandler(RawRequestHandler):
         elif header == BLK:
             handleBlk(self.packet.data)
         else:
-            print "Received unknown message", self.packet.data
+            print "Received unknown header", header
 
     def finish(self):
         print("End")
