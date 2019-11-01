@@ -46,7 +46,7 @@ def handleGetdir(dest):
                 if os.path.isfile(filePath):
                     message = bytearray()
                     message.append(DIR)
-                    message.extend(filePath)
+                    message.extend(filePath.encode("utf-8"))
                     rawSocket.send(message, dest)
 
     # Send an empty DIR message which indicates no more entries are available.
@@ -67,12 +67,12 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    path = data.decode().strip()
+    path = data.decode("utf-8").strip()
     if not path:
         print "> END"
         rawServer.running = False
     else:
-        print ">", data
+        print ">", data, "ENTRY"
 
 def handleFile(data):
     print "Received FILE message"
