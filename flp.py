@@ -107,6 +107,7 @@ def handleGetblk(data, dest):
             replyMessage.extend([b'\0'] * blockPadding)
 
         replyMessage.extend(remotePath.encode("utf-8"))
+        print "Extended block with padding",blockPadding
     else:
         replyMessage.append(FNF)
         replyMessage.extend(remotePath.encode("utf-8"))
@@ -132,7 +133,7 @@ def handleFile(data):
     ftSeqSize = unpacked[1]
     ftHash = unpacked[2]
     ftSeqCount = (ftSize // ftSeqSize) + ((ftSize % ftSeqSize) > 0)
-    ftProgress = [False] * ftSeqCount
+    ftProgress = [0] * ftSeqCount
     remotePath = decodeStr(data[packSize:])
     print "Received FILE message with size",ftSize,"sequence size",ftSeqSize,"hash",ftHash,"from the remote path",remotePath,"total seqs",ftSeqCount
 
@@ -151,7 +152,7 @@ def handleBlk(data):
     block = data[packSize:blockEnd]
     remotePath = decodeStr(data[blockEnd:])
     if ftRemotePath == remotePath:
-        ftProgress[seqn] = True
+        ftProgress[seqn] = 2
         ftActiveBlocks += 1
         print "Valid BLK transfer"
 
@@ -162,15 +163,22 @@ def checkActiveFt(dest):
     if len(ftProgress) > 0:
         finished = True
         for i in range(0, len(ftProgress)):
-            if not ftProgress[i]:
+            # Block hasn't been requested for transfer yet.
+            if ftProgress[i] == 0:
                 finished = False
                 if ftActiveBlocks > 0:
+                    print "Requesting block with seqn",i
+                    ftProgress[i] = 1
                     message = bytearray()
                     message.append(GETBLK)
                     message.extend(struct.pack(GETBLK_FORMAT, i))
                     message.extend(ftRemotePath.encode("utf-8"))
                     rawSocket.send(message, dest)
                     ftActiveBlocks -= 1
+            # Block has been requested for transfer.
+            elif ftProgress[i] == 1:
+                finished = False
+                
         
         if finished:
             # TODO Perform CRC Check on File.
