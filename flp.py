@@ -1,9 +1,11 @@
 from rawsocketpy import RawSocket, RawRequestHandler, RawAsyncServer
+from struct import *
 import sys
 import os
 
-# Configuration file
+# Configuration
 MOUNTS_LIST = 'mounts.flp'
+SEQUENCE_SIZE = 1024
 
 # RawSocket constants
 ETHER_TYPE = 0xEEFA
@@ -17,8 +19,10 @@ FNF     = '\x22'
 GETBLK  = '\x30'
 BLK     = '\x31'
 
+# Global variables
 rawSocket = None
 rawServer = None
+saveToPath = ''
 
 def showHelp():
     print('\nflp - File Exchange Linked In Public Environment:\nCommands:\n')
@@ -55,11 +59,23 @@ def handleGetdir(dest):
     rawSocket.send(message, dest)
 
 def handleGetfile(data, dest):
-    print "Received GETFILE message"
+    # TODO: Validate if remotepath is a file inside one of the mounted directories.
     message = bytearray()
-    message.append(FILE)
+    remotepath = data.decode("utf-8")
+    if os.path.isfile(remotepath):
+        filesize = os.path.getsize(remotepath)
+        filehash = 123456789
+        message.extend(struct.pack("bQHI", FILE, filesize, SEQUENCE_SIZE, filehash))
+        message.extend(remotepath.encode("utf-8"))
+    else:
+        message.append(FNF)
+        message.extend(remotepath.encode("utf-8"))
+        
     rawSocket.send(message, dest)
 
+#[GETBLK | ‘REMOTEPATH/0’ | SEQN]
+#REMOTEPATH (Null-terminated String): Remote path for the file in the server.
+#SEQN (4 Bytes): Sequence number.
 def handleGetblk(data, dest):
     print "Received GETBLK message"
     message = bytearray()
@@ -75,11 +91,21 @@ def handleDir(data):
         print ">", data
 
 def handleFile(data):
-    print "Received FILE message"
-    
+    unpacked = struct.unpack("QHI", data[0:14])
+    filesize = unpacked[0]
+    seqsize = unpacked[1]
+    filehash = unpacked[2]
+    remotepath = data[14:].decode("utf-8")
+    print "Received FILE with size",filesize,"sequence size",seqsize,"hash",filehas,"from the remote path",remotepath
+
+#[FNF | ‘REMOTEPATH/0’]
 def handleFnf(data):
     print "Received FNF message"
-    
+
+#[BLK | ‘REMOTEPATH/0’ | SEQN | DATA]
+#REMOTEPATH (Null-terminated String): Remote path for the file in the server.
+#SEQN (4 Bytes): Sequence number.
+#DATA (SEQBYTES Bytes): Raw data with the amount of bytes specified by the FILE message.
 def handleBlk(data):
     print "Received BLK message"
 
@@ -171,12 +197,13 @@ def getdir(interface, mac):
     startRawServer(interface)
 
 def getfile(interface, mac, remotepath, localpath):
+    global saveToPath
     global rawSocket
     rawSocket = RawSocket(interface, ETHER_TYPE)
     message = bytearray()
     message.append(GETFILE)
-    message.append(remotepath)
-    message.append(0)
+    message.extend(remotepath.encode("utf-8"))
+    saveToPath = localpath
     macDecoded = mac.replace(':', '').decode('hex')
     rawSocket.send(message, macDecoded)
     startRawServer(interface)
