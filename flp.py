@@ -88,8 +88,7 @@ def handleBlk(data):
 class SharingHandler(RawRequestHandler):
     def handle(self):
         header = self.packet.data[0]
-        data = self.packet.data
-        del data[0]
+        data = self.packet.data[1:]
         if header == GETDIR:
             handleGetdir(self.packet.src)
         elif header == GETFILE:
