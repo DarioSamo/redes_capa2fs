@@ -93,8 +93,8 @@ def handleGetblk(data, dest):
     unpacked = struct.unpack(GETBLK_FORMAT, data[0:packSize])
     seqn = unpacked[0]
     remotePath = decodeStr(data[packSize:])
-    if os.path.isfile(remotepath):
-        file = open(remotepath, 'r')
+    if os.path.isfile(remotePath):
+        file = open(remotePath, 'r')
         file.seek(seqn * SEQUENCE_SIZE)
         block = file.read(SEQUENCE_SIZE)
         file.close()
@@ -106,10 +106,10 @@ def handleGetblk(data, dest):
         if blockPadding > 0:
             replyMessage.extend([b'\0'] * blockPadding)
 
-        replyMessage.extend(remotepath.encode("utf-8"))
+        replyMessage.extend(remotePath.encode("utf-8"))
     else:
         replyMessage.append(FNF)
-        replyMessage.extend(remotepath.encode("utf-8"))
+        replyMessage.extend(remotePath.encode("utf-8"))
         
     rawSocket.send(replyMessage, dest)
 
