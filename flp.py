@@ -156,7 +156,7 @@ def handleBlk(data):
         ftActiveBlocks += 1
         print "Valid BLK transfer"
 
-    print "Received BLK message with seqn",seqn,"from the remote path",remotePath,"with data block",block
+    print "Received BLK message with seqn",seqn,"from the remote path",remotePath,"with data block",block,"len",len(data)
 
 def checkActiveFt(dest):
     global ftActiveBlocks
