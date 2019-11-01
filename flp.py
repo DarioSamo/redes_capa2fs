@@ -35,6 +35,7 @@ def showHelp():
 
 def handleGetdir(packet, dest):
     print "Received GETDIR message"
+    messageByteArray = bytearray()
     messageByteArray.append(DIR)
     messageByteArray.append('mydirectory')
     messageByteArray.append(0)
