@@ -114,11 +114,11 @@ def handleGetblk(data, dest):
     rawSocket.send(replyMessage, dest)
 
 def handleDir(data):
-    remotePath = decodeStr(data)
-    if ord(remotePath[0]) == 0:
+    if ord(data[0]) == 0:
         print "> END"
         sys.exit()
     else:
+        remotePath = decodeStr(data)
         print ">", remotePath
 
 def handleFile(data):
@@ -156,7 +156,7 @@ def handleBlk(data):
     rest = (ftSize % ftSeqSize)
     if seqn == (len(ftProgress) - 1) and rest > 0:
         blockEnd = packSize + rest
-        
+
     block = data[packSize:blockEnd]
     pathStart = packSize + ftSeqSize
     remotePath = decodeStr(data[pathStart:])
@@ -167,6 +167,8 @@ def handleBlk(data):
         file.close()
         ftProgress[seqn] = 2
         ftActiveBlocks += 1
+        
+        # Print pretty progress here.
 
 def checkActiveFt(dest):
     global ftActiveBlocks
@@ -177,7 +179,6 @@ def checkActiveFt(dest):
             if ftProgress[i] == 0:
                 finished = False
                 if ftActiveBlocks > 0:
-                    print "Requesting block with seqn",i
                     ftProgress[i] = 1
                     message = bytearray()
                     message.append(GETBLK)
