@@ -68,7 +68,7 @@ def handleGetblk(data, dest):
 
 def handleDir(data):
     path = data.decode("utf-8").strip()
-    if not path:
+    if path == b'':
         print "> END"
         rawServer.running = False
     else:
