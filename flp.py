@@ -165,6 +165,7 @@ def checkActiveFt(dest):
             if not ftProgress[i]:
                 finished = False
                 if ftActiveBlocks > 0:
+                    message = bytearray()
                     message.append(GETBLK)
                     message.extend(struct.pack(GETBLK_FORMAT, i))
                     message.extend(ftRemotePath.encode("utf-8"))
