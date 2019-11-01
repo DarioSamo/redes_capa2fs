@@ -159,7 +159,8 @@ def handleBlk(data):
         blockEnd = packSize + ftSeqSize
 
     block = data[packSize:blockEnd]
-    remotePath = decodeStr(data[(packSize + ftSeqSize)):])
+    pathStart = packSize + ftSeqSize
+    remotePath = decodeStr(data[pathStart:])
     if ftRemotePath == remotePath:
         file = open(ftPath, "rb+")
         file.seek(seqn * ftSeqSize)
