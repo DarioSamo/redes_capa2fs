@@ -1,7 +1,7 @@
 from rawsocketpy import RawSocket, RawRequestHandler, RawAsyncServer
-from struct import *
-import sys
 import os
+import struct
+import sys
 
 # Configuration
 MOUNTS_LIST = 'mounts.flp'
@@ -23,6 +23,9 @@ BLK     = '\x31'
 rawSocket = None
 rawServer = None
 saveToPath = ''
+
+def decodeStr(data):
+    return data.decode("utf-8").partition(b'\0')[0]
 
 def showHelp():
     print('\nflp - File Exchange Linked In Public Environment:\nCommands:\n')
@@ -61,7 +64,7 @@ def handleGetdir(dest):
 def handleGetfile(data, dest):
     # TODO: Validate if remotepath is a file inside one of the mounted directories.
     message = bytearray()
-    remotepath = data.decode("utf-8")
+    remotepath = decodeStr(data)
     if os.path.isfile(remotepath):
         filesize = os.path.getsize(remotepath)
         filehash = 123456789
@@ -81,23 +84,23 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    path = data.decode("utf-8")
-    if ord(path[0]) == 0:
+    remotepath = decodeStr(data)
+    if ord(remotepath[0]) == 0:
         print "> END"
         sys.exit()
     else:
-        print ">", data
+        print ">", remotepath
 
 def handleFile(data):
     unpacked = struct.unpack("QHI", data[0:14])
     filesize = unpacked[0]
     seqsize = unpacked[1]
     filehash = unpacked[2]
-    remotepath = data[14:].decode("utf-8")
-    print "Received FILE with size",filesize,"sequence size",seqsize,"hash",filehas,"from the remote path",remotepath
+    remotepath = decodeStr(data[14:])
+    print "Received FILE message with size",filesize,"sequence size",seqsize,"hash",filehas,"from the remote path",remotepath
 
 def handleFnf(data):
-    remotepath = data.decode("utf-8")
+    remotepath = decodeStr(data)
     print "File not found in destination:", remotepath
     sys.exit(1)
 
