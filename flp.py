@@ -94,7 +94,7 @@ def handleGetblk(data, dest):
     seqn = unpacked[0]
     remotePath = decodeStr(data[packSize:])
     if os.path.isfile(remotePath):
-        file = open(remotePath, 'r')
+        file = open(remotePath, 'rb')
         file.seek(seqn * SEQUENCE_SIZE)
         block = file.read(SEQUENCE_SIZE)
         file.close()
@@ -107,7 +107,6 @@ def handleGetblk(data, dest):
             replyMessage.extend([b'\0'] * blockPadding)
 
         replyMessage.extend(remotePath.encode("utf-8"))
-        print "Extended block with padding",blockPadding
     else:
         replyMessage.append(FNF)
         replyMessage.extend(remotePath.encode("utf-8"))
@@ -135,7 +134,12 @@ def handleFile(data):
     ftSeqCount = (ftSize // ftSeqSize) + ((ftSize % ftSeqSize) > 0)
     ftProgress = [0] * ftSeqCount
     remotePath = decodeStr(data[packSize:])
-    print "Received FILE message with size",ftSize,"sequence size",ftSeqSize,"hash",ftHash,"from the remote path",remotePath,"total seqs",ftSeqCount
+
+    # Create empty file for writing.
+    file = open(ftPath, "wb")
+    file.seek(ftSize - 1)
+    file.write('\0')
+    file.close()
 
 def handleFnf(data):
     remotePath = decodeStr(data)
@@ -148,15 +152,21 @@ def handleBlk(data):
     packSize = struct.calcsize(BLK_FORMAT)
     unpacked = struct.unpack(BLK_FORMAT, data[0:packSize])
     seqn = unpacked[0]
-    blockEnd = packSize + ftSeqSize
+    rest = (ftSize % ftSeqSize)
+    if seqn == (len(ftProgress) - 1) and rest > 0:
+        blockEnd = packSize + rest
+    else:
+        blockEnd = packSize + ftSeqSize
+
     block = data[packSize:blockEnd]
-    remotePath = decodeStr(data[blockEnd:])
+    remotePath = decodeStr(data[(packSize + ftSeqSize)):])
     if ftRemotePath == remotePath:
+        file = open(ftPath, "rb+")
+        file.seek(seqn * ftSeqSize)
+        file.write(block)
+        file.close()
         ftProgress[seqn] = 2
         ftActiveBlocks += 1
-        print "Valid BLK transfer"
-
-    print "Received BLK message with seqn",seqn,"from the remote path",remotePath,"with data block",block,"len",len(data)
 
 def checkActiveFt(dest):
     global ftActiveBlocks
