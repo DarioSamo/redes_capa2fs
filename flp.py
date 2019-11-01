@@ -72,7 +72,7 @@ class SharingHandler(RawRequestHandler):
         elif header == BLK:
             handleBlk(self.packet.data)
         else:
-            print "Received unknown message with header", header
+            print "Received unknown message", self.packet.data
 
     def finish(self):
         print("End")
