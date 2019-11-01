@@ -1,4 +1,4 @@
-#from rawsocketpy import RawSocket, RawRequestHandler, RawAsyncServerCallback
+from rawsocketpy import RawSocket, RawRequestHandler, RawAsyncServerCallback
 import sys
 import os
 
