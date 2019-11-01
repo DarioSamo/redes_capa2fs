@@ -69,8 +69,11 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    print "Received DIR message"
-    print data
+    if data.count() > 0:
+        print ">", data
+    else:
+        print "> END"
+        rawServer.running = False
 
 def handleFile(data):
     print "Received FILE message"
