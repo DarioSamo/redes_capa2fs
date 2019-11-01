@@ -65,7 +65,8 @@ def handleGetfile(data, dest):
     if os.path.isfile(remotepath):
         filesize = os.path.getsize(remotepath)
         filehash = 123456789
-        message.extend(struct.pack("bQHI", FILE, filesize, SEQUENCE_SIZE, filehash))
+        message.append(FILE)
+        message.extend(struct.pack("QHI", filesize, SEQUENCE_SIZE, filehash))
         message.extend(remotepath.encode("utf-8"))
     else:
         message.append(FNF)
@@ -98,9 +99,10 @@ def handleFile(data):
     remotepath = data[14:].decode("utf-8")
     print "Received FILE with size",filesize,"sequence size",seqsize,"hash",filehas,"from the remote path",remotepath
 
-#[FNF | ‘REMOTEPATH/0’]
 def handleFnf(data):
-    print "Received FNF message"
+    remotepath = data.decode("utf-8")
+    print "File not found in destination:", remotepath
+    sys.exit(1)
 
 #[BLK | ‘REMOTEPATH/0’ | SEQN | DATA]
 #REMOTEPATH (Null-terminated String): Remote path for the file in the server.
