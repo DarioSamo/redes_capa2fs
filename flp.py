@@ -35,21 +35,32 @@ def showHelp():
 
 def handleGetdir(packet, dest):
     print "Received GETDIR message"
-    messageByteArray = bytearray()
-    messageByteArray.append(DIR)
-    rawSocket.send(messageByteArray, dest)
+    if os.path.isfile(MOUNTS_LIST):
+        file = open(MOUNTS_LIST, "r")
+        for line in file:
+            path = line.rstrip()
+            
+            message = bytearray()
+            message.append(DIR)
+            message.extend(path)
+            rawSocket.send(message, dest)
+
+    # Send a message which indicates no more entries are available.
+    message = bytearray()
+    message.append(DIR)
+    rawSocket.send(message, dest)
 
 def handleGetfile(packet, dest):
     print "Received GETFILE message"
-    messageByteArray = bytearray()
-    messageByteArray.append(FILE)
-    rawSocket.send(messageByteArray, dest)
+    message = bytearray()
+    message.append(FILE)
+    rawSocket.send(message, dest)
 
 def handleGetblk(packet, dest):
     print "Received GETBLK message"
-    messageByteArray = bytearray()
-    messageByteArray.append(BLK)
-    rawSocket.send(messageByteArray, dest)
+    message = bytearray()
+    message.append(BLK)
+    rawSocket.send(message, dest)
 
 def handleDir(packet):
     print "Received DIR message"
@@ -145,21 +156,21 @@ def unmount(path):
 def getdir(interface, mac):
     global rawSocket
     rawSocket = RawSocket(interface, ETHER_TYPE)
-    messageByteArray = bytearray()
-    messageByteArray.append(GETDIR)
+    message = bytearray()
+    message.append(GETDIR)
     macDecoded = mac.replace(':', '').decode('hex')
-    rawSocket.send(messageByteArray, macDecoded)
+    rawSocket.send(message, macDecoded)
     startRawServer(interface)
 
 def getfile(interface, mac, remotepath, localpath):
     global rawSocket
     rawSocket = RawSocket(interface, ETHER_TYPE)
-    messageByteArray = bytearray()
-    messageByteArray.append(GETFILE)
-    messageByteArray.append(remotepath)
-    messageByteArray.append(0)
+    message = bytearray()
+    message.append(GETFILE)
+    message.append(remotepath)
+    message.append(0)
     macDecoded = mac.replace(':', '').decode('hex')
-    rawSocket.send(messageByteArray, macDecoded)
+    rawSocket.send(message, macDecoded)
     startRawServer(interface)
 
 argCount = len(sys.argv)
