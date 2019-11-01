@@ -17,8 +17,8 @@ FNF     = '\x22'
 GETBLK  = '\x30'
 BLK     = '\x31'
 
-rawSocket = 0
-rawServer = 0
+rawSocket = None
+rawServer = None
 
 def showHelp():
     print('\nflp - File Exchange Linked In Public Environment:\nCommands:\n')
@@ -37,15 +37,19 @@ def handleGetdir(packet, dest):
     print "Received GETDIR message"
     messageByteArray = bytearray()
     messageByteArray.append(DIR)
-    messageByteArray.append('mydirectory')
-    messageByteArray.append(0)
     rawSocket.send(messageByteArray, dest)
 
 def handleGetfile(packet, dest):
     print "Received GETFILE message"
+    messageByteArray = bytearray()
+    messageByteArray.append(FILE)
+    rawSocket.send(messageByteArray, dest)
 
 def handleGetblk(packet, dest):
     print "Received GETBLK message"
+    messageByteArray = bytearray()
+    messageByteArray.append(BLK)
+    rawSocket.send(messageByteArray, dest)
 
 def handleDir(packet):
     print "Received DIR message"
@@ -85,11 +89,16 @@ class SharingHandler(RawRequestHandler):
     def setup(self):
         print("Begin")
 
-def share(interface):
-    print "Sharing files on network interface", interface
-    rawSocket = RawSocket(interface, ETHER_TYPE)
+def startRawServer(interface):
+    global rawServer
     rawServer = RawAsyncServer(interface, ETHER_TYPE, SharingHandler)
     rawServer.spin()
+
+def share(interface):
+    print "Sharing files on network interface", interface
+    global rawSocket
+    rawSocket = RawSocket(interface, ETHER_TYPE)
+    startRawServer(interface)
 
 def mount(path):
     # Make sure the path is not in the active mounts list.
@@ -134,15 +143,16 @@ def unmount(path):
             print "Path", path, "not found in mount list."
 
 def getdir(interface, mac):
+    global rawSocket
     rawSocket = RawSocket(interface, ETHER_TYPE)
     messageByteArray = bytearray()
     messageByteArray.append(GETDIR)
     macDecoded = mac.replace(':', '').decode('hex')
     rawSocket.send(messageByteArray, macDecoded)
-    rawServer = RawAsyncServer(interface, ETHER_TYPE, SharingHandler)
-    rawServer.spin()
+    startRawServer(interface)
 
 def getfile(interface, mac, remotepath, localpath):
+    global rawSocket
     rawSocket = RawSocket(interface, ETHER_TYPE)
     messageByteArray = bytearray()
     messageByteArray.append(GETFILE)
@@ -150,8 +160,7 @@ def getfile(interface, mac, remotepath, localpath):
     messageByteArray.append(0)
     macDecoded = mac.replace(':', '').decode('hex')
     rawSocket.send(messageByteArray, macDecoded)
-    rawServer = RawAsyncServer(interface, ETHER_TYPE, SharingHandler)
-    rawServer.spin()
+    startRawServer(interface)
 
 argCount = len(sys.argv)
 if argCount >= 2:
