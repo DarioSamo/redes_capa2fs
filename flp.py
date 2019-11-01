@@ -67,12 +67,12 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    path = data.decode("utf-8").strip()
-    if path == b'':
+    path = data.decode("utf-8")
+    if ord(path[0]) == 0:
         print "> END"
-        rawServer.running = False
+        stopRawServer()
     else:
-        print ">", data, "ENTRY"
+        print ">", data
 
 def handleFile(data):
     print "Received FILE message"
@@ -108,6 +108,10 @@ def startRawServer(interface):
     global rawServer
     rawServer = RawAsyncServer(interface, ETHER_TYPE, SharingHandler)
     rawServer.spin()
+
+def stopRawServer():
+    global rawServer
+    rawServer.running = False
 
 def share(interface):
     print "Sharing files on network interface", interface
