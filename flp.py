@@ -74,9 +74,6 @@ def handleGetfile(data, dest):
         
     rawSocket.send(message, dest)
 
-#[GETBLK | ‘REMOTEPATH/0’ | SEQN]
-#REMOTEPATH (Null-terminated String): Remote path for the file in the server.
-#SEQN (4 Bytes): Sequence number.
 def handleGetblk(data, dest):
     print "Received GETBLK message"
     message = bytearray()
@@ -104,10 +101,6 @@ def handleFnf(data):
     print "File not found in destination:", remotepath
     sys.exit(1)
 
-#[BLK | ‘REMOTEPATH/0’ | SEQN | DATA]
-#REMOTEPATH (Null-terminated String): Remote path for the file in the server.
-#SEQN (4 Bytes): Sequence number.
-#DATA (SEQBYTES Bytes): Raw data with the amount of bytes specified by the FILE message.
 def handleBlk(data):
     print "Received BLK message"
 
