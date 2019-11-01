@@ -5,7 +5,7 @@ import sys
 
 # Configuration
 MOUNTS_LIST = 'mounts.flp'
-SEQUENCE_SIZE = 1024
+SEQUENCE_SIZE = 512
 MAX_ACTIVE_BLOCKS = 5
 
 # Constants
@@ -148,7 +148,7 @@ def handleBlk(data):
     packSize = struct.calcsize(BLK_FORMAT)
     unpacked = struct.unpack(BLK_FORMAT, data[0:packSize])
     seqn = unpacked[0]
-    blockEnd = packSize + SEQUENCE_SIZE
+    blockEnd = packSize + ftSeqSize
     block = data[packSize:blockEnd]
     remotePath = decodeStr(data[blockEnd:])
     if ftRemotePath == remotePath:
