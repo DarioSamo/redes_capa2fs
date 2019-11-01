@@ -23,7 +23,11 @@ BLK     = '\x31'
 # Global variables
 rawSocket = None
 rawServer = None
-saveToPath = ''
+ftPath = ''
+ftSeqSize = 0
+ftSize = 0
+ftHash = None
+ftProgress = list()
 
 def decodeStr(data):
     return data.decode("utf-8").partition(b'\0')[0]
@@ -85,25 +89,31 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    remotepath = decodeStr(data)
-    if ord(remotepath[0]) == 0:
+    remotePath = decodeStr(data)
+    if ord(remotePath[0]) == 0:
         print "> END"
         sys.exit()
     else:
-        print ">", remotepath
+        print ">", remotePath
 
 def handleFile(data):
-    packsize = struct.calcsize(FILE_FORMAT)
-    unpacked = struct.unpack(FILE_FORMAT, data[0:packsize])
-    filesize = unpacked[0]
-    seqsize = unpacked[1]
-    filehash = unpacked[2]
-    remotepath = decodeStr(data[packsize:])
-    print "Received FILE message with size",filesize,"sequence size",seqsize,"hash",filehash,"from the remote path",remotepath
+    global ftSeqSize
+    global ftSize
+    global ftHash
+    global ftProgress
+    packSize = struct.calcsize(FILE_FORMAT)
+    unpacked = struct.unpack(FILE_FORMAT, data[0:packSize])
+    ftSize = unpacked[0]
+    ftSeqSize = unpacked[1]
+    ftHash = unpacked[2]
+    ftSeqCount = (ftSize // ftSeqSize) + ((ftSize % ftSeqSize) > 0)
+    ftProgress = [False] * ftSeqCount
+    remotePath = decodeStr(data[packSize:])
+    print "Received FILE message with size",ftSize,"sequence size",ftSeqSize,"hash",ftHash,"from the remote path",remotePath,"total seqs",ftSeqCount
 
 def handleFnf(data):
-    remotepath = decodeStr(data)
-    print "File not found in destination:", remotepath
+    remotePath = decodeStr(data)
+    print "File not found in destination:", remotePath
     sys.exit(1)
 
 def handleBlk(data):
@@ -197,13 +207,13 @@ def getdir(interface, mac):
     startRawServer(interface)
 
 def getfile(interface, mac, remotepath, localpath):
-    global saveToPath
+    global ftPath
     global rawSocket
     rawSocket = RawSocket(interface, ETHER_TYPE)
     message = bytearray()
     message.append(GETFILE)
     message.extend(remotepath.encode("utf-8"))
-    saveToPath = localpath
+    ftPath = localpath
     macDecoded = mac.replace(':', '').decode('hex')
     rawSocket.send(message, macDecoded)
     startRawServer(interface)
