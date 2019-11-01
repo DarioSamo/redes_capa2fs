@@ -70,7 +70,7 @@ def handleDir(data):
     path = data.decode("utf-8")
     if ord(path[0]) == 0:
         print "> END"
-        stopRawServer()
+        sys.exit()
     else:
         print ">", data
 
