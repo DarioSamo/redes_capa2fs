@@ -69,7 +69,7 @@ def handleGetblk(data, dest):
     rawSocket.send(message, dest)
 
 def handleDir(data):
-    if len(data) > 0:
+    if len(data) > 1:
         print ">", data
     else:
         print "> END"
