@@ -1,4 +1,5 @@
 # File Exchange Linked In Public Environment
+A protocol/tool for transferring files over the network data layer (*layer 2*).
 
 ## Requirements
 * Linux
