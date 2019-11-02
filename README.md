@@ -74,9 +74,9 @@ Remove directory from shared directories.
 ### getfile
 *getfile interface address remotepath localpath*
 
-Download a file from the ‘remotepath’ to the ‘localpath’.
+Download a file from the ‘remotepath’ to the ‘localpath’ from the target address over a network interface.
   
 ### getdir
 *getdir interface address*
 
-Request the paths of all the files being shared inside the shared directories.
+Request the paths of all the files inside the shared directories from the target address over a network interface.
