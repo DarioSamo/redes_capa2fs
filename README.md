@@ -1,5 +1,10 @@
 # File Exchange Linked In Public Environment
 
+## Dependencies
+* Python 2.7
+* RawSocketPy: https://github.com/AlexisTM/rawsocket_python
+* gevent
+
 ## Messages
 
 Messages are composed by a 1-byte header (TYPE) and a message section which depends on the type of message.
