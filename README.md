@@ -8,7 +8,29 @@ A protocol/tool for transferring files over the network data layer (*layer 2*).
 * gevent
 * Root privileges
 
-## Messages
+## Commands
+
+### mount
+*mount dir*
+
+Add directory to shared directories.
+  
+### unmount
+*unmount dir*
+
+Remove directory from shared directories.
+
+### getfile
+*getfile interface address remotepath localpath*
+
+Download a file from the ‘remotepath’ to the ‘localpath’ from the target address over a network interface.
+  
+### getdir
+*getdir interface address*
+
+Request the paths of all the files inside the shared directories from the target address over a network interface.
+
+## Protocol Messages
 
 Messages are composed by a 1-byte header (TYPE) and a message section which depends on the type of message.
 
@@ -66,25 +88,3 @@ Reply to a GETBLK request.
 * SEQN (4 bytes): Sequence number of the block.
 * DATA (SEQBYTES bytes): Raw data of the block. The size is fixed even if it's the last block of the file. The size of the block matches the one specified by the FILE message for the file in the path.
 * REMOTEPATH (UTF-8 String): Path of the file in the sender.
-
-## Commands
-
-### mount
-*mount dir*
-
-Add directory to shared directories.
-  
-### unmount
-*unmount dir*
-
-Remove directory from shared directories.
-
-### getfile
-*getfile interface address remotepath localpath*
-
-Download a file from the ‘remotepath’ to the ‘localpath’ from the target address over a network interface.
-  
-### getdir
-*getdir interface address*
-
-Request the paths of all the files inside the shared directories from the target address over a network interface.
