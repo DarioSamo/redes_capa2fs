@@ -1,9 +1,11 @@
 # File Exchange Linked In Public Environment
 
-## Dependencies
+## Requirements
+* Linux
 * Python 2.7
 * RawSocketPy: https://github.com/AlexisTM/rawsocket_python
 * gevent
+* Root privileges
 
 ## Messages
 
