@@ -64,21 +64,19 @@ Reply to a GETBLK request.
 ### mount
 *mount dir*
 
-Adds specified directory to shared directories
+Add directory to shared directories.
   
 ### unmount
 *unmount dir*
 
-Removes directory from shared directories.
+Remove directory from shared directories.
 
 ### getfile
 *getfile interface address remotepath localpath*
 
-Sends the request to download a file in the ‘remotepath’ to the ‘localpath’.
-
-Starts downloading automatically as soon as the file information is returned.
+Download a file from the ‘remotepath’ to the ‘localpath’.
   
 ### getdir
 *getdir interface address*
 
-Sends a request for all available files and their directories.
+Request the paths of all the files being shared inside the shared directories.
