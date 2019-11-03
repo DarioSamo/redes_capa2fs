@@ -218,9 +218,15 @@ class SharingHandler(RawRequestHandler):
         else:
             print "Received unknown header", header 
 
-def startRawServer(interface):
+def createRawSocket(interface):
+    global rawSocket
+    rawSocket = RawSocket(interface, ETHER_TYPE)
+
+def createRawServer(interface):
     global rawServer
     rawServer = RawAsyncServer(interface, ETHER_TYPE, SharingHandler)
+
+def initRawServer():
     rawServer.spin()
 
 def stopRawServer():
@@ -229,9 +235,9 @@ def stopRawServer():
 
 def share(interface):
     print "Sharing files on network interface", interface
-    global rawSocket
-    rawSocket = RawSocket(interface, ETHER_TYPE)
-    startRawServer(interface)
+    createRawSocket(interface)
+    createRawServer(interface)
+    initRawServer()
 
 def mount(path):
     # Make sure the path is not in the active mounts list.
@@ -276,19 +282,19 @@ def unmount(path):
             print "Path", path, "not found in mount list."
 
 def getdir(interface, mac):
-    global rawSocket
-    rawSocket = RawSocket(interface, ETHER_TYPE)
+    createRawSocket(interface)
+    createRawServer(interface)
     message = bytearray()
     message.append(GETDIR)
     macDecoded = mac.replace(':', '').decode('hex')
     rawSocket.send(message, macDecoded)
-    startRawServer(interface)
+    initRawServer()
 
 def getfile(interface, mac, remotepath, localpath):
     global ftPath
     global ftRemotePath
-    global rawSocket
-    rawSocket = RawSocket(interface, ETHER_TYPE)
+    createRawSocket(interface)
+    createRawServer(interface)
     message = bytearray()
     message.append(GETFILE)
     message.extend(remotepath.encode("utf-8"))
@@ -296,7 +302,7 @@ def getfile(interface, mac, remotepath, localpath):
     ftRemotePath = remotepath
     macDecoded = mac.replace(':', '').decode('hex')
     rawSocket.send(message, macDecoded)
-    startRawServer(interface)
+    initRawServer()
 
 argCount = len(sys.argv)
 if argCount >= 2:
