@@ -266,9 +266,9 @@ def checkActiveFt(dest):
                 print_progressbar(1, 1, 0, decimals=1) #prints a hard-coded full progressbar :P
                 sys.exit()
             else:
-                print("Hash error, restarting...")
-                data = self.packet.data[1:]
-                handlefile(data)
+                print("Hash error, quitting...")
+                sys.exit()
+#TODO QUE REINICIE LA WEA
  
 class SharingHandler(RawRequestHandler):
     def handle(self):
