@@ -94,6 +94,7 @@ def handleGetfile(data, dest):
         filehash = crc(remotepath)
         message.append(FILE)
         message.extend(struct.pack(FILE_FORMAT, filesize, SEQUENCE_SIZE, filehash))
+
         message.extend(remotepath.encode("utf-8"))
     else:
         message.append(FNF)
@@ -106,6 +107,7 @@ def crc(fileName):
     for eachLine in open(fileName,"rb"):
         prev = zlib.crc32(eachLine, prev)
     return (prev & 0xFFFFFFFF)
+
 
 def handleGetblk(data, dest):
     replyMessage = bytearray()
@@ -269,6 +271,7 @@ def checkActiveFt(dest):
                 print("Hash error, restarting...")
                 data = self.packet.data[1:]
                 handlefile(data)
+
  
 class SharingHandler(RawRequestHandler):
     def handle(self):
