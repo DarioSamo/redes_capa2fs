@@ -189,7 +189,7 @@ def handleFile(data):
     if(auxSize > 1024): # if greather than 1mega
         auxSize /= 1024.0 #format MBps
         unit = 'MB'
-    ftSizeStr = auxSize + unit
+    ftSizeStr = str.format("%.1f" % auxSize) + " " + unit
     
     start_timer_downloadspeed(ftFinSeqCount) #starts download speed's timer
 
@@ -288,9 +288,9 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
         downSize /= 1024.0 #format MBps
         unit2 = 'MB'
     
-    sys.stdout.write('\r%s |%s| %s%s [%.2f %s/s]  ' % (prefix, bar, percents, '%', speed, unit)),
+    sys.stdout.write('\r%s |%s| %s%s [%.1f %s/s]  ' % (prefix, bar, percents, '%', speed, unit)),
     #                                           ^^ these are totally necessary, pls do not delete
-    sys.stdout.write('\r [%.2f %s/%s] ETA %s %s    ' % ( iteration * SEQUENCE_SIZE,unit2, ftSizeStr, percents, remTime, timeUnit)),
+    sys.stdout.write('\r [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, percents, remTime, timeUnit)),
     #                                     ^^^^ these are totally necessary, pls do not delete
     if iteration == total:
         sys.stdout.write('\n')
