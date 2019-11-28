@@ -408,9 +408,9 @@ def share(interface):
     initRawServer()
  
 def mount(path):
-	if path[-1:] == "/":
-		print "Path cannot end with /"
-		return False
+    if path.endswith("/"):
+        print "Path cannot end with /"
+        return False
 
     # Make sure the path is not in the active mounts list.
     if dirIsMounted(path):
