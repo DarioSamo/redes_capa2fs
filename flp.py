@@ -293,7 +293,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
     
     sys.stdout.write('\r%s |%s| %s%s [%.1f %s/s]  ' % (prefix, bar, percents, '%', speed, unit)),
     #                                           ^^ these are totally necessary, pls do not delete
-    sys.stdout.write('\r [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, percents, remTime, timeUnit)),
+    sys.stdout.write('\r [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, remTime, timeUnit)),
     #                                     ^^^^ these are totally necessary, pls do not delete
     if iteration == total:
         sys.stdout.write('\n')
