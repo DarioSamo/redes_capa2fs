@@ -11,22 +11,22 @@ A protocol/tool for transferring files over the network data layer (*layer 2*).
 ## Commands
 
 ### mount
-*mount dir*
+*mount <dir path>*
 
 Add directory to shared directories.
   
 ### unmount
-*unmount dir*
+*unmount <dir path>*
 
 Remove directory from shared directories.
 
 ### getfile
-*getfile interface address remotepath localpath*
+*getfile <network interface> <address> <remotepath> <localpath>*
 
 Download a file from the ‘remotepath’ to the ‘localpath’ from the target address over a network interface.
   
 ### getdir
-*getdir interface address*
+*getdir <network interface> <address>*
 
 Request the paths of all the files inside the shared directories from the target address over a network interface.
 
