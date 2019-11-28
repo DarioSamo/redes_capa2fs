@@ -265,15 +265,17 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
         sys.stdout.flush()
         sys.stdout.flush()
         sys.stdout.write('\nThe file (%s) was successfully downloaded at %s' % (ftSizeStr, ftPath))
-        elapsedDT = datetime.datetime.now() - ftStartDatetime
-        print "\nIt was downloaded in "
-        if((elapsedDT.hours != None) and (elapsedDT.hours > 0)):
-            print elapsedDT.hours, "hours "
-        if((elapsedDT.minutes != None) and (elapsedDT.minutes > 0)):
-            print elapsedDT.minutes, "minutes "
-        if((elapsedDT.seconds != None) and (elapsedDT.seconds > 0)):
-            print elapsedDT.seconds, "seconds "
-        print ".\n"
+        elapsedTime = (datetime.datetime.now() - ftStartDatetime).seconds
+
+        elapsedTimeUnit = "seconds"
+        if(elapsedTime >= 60):
+            elapsedTime /= 60
+            elapsedTimeUnit = "minutes"
+        if(elapsedTime >= 60):
+            elapsedTime /= 60
+            elapsedTimeUnit = "hours"
+        print "\nIt was downloaded in ", elapsedTime, elapsedTimeUnit
+        
     else:
         str_format = "{0:." + str(decimals) + "f}"
         percents = str_format.format(100 * (iteration / float(total)))
