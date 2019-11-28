@@ -260,8 +260,11 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
     filled_length = int(round(bar_length * iteration / float(total)))
     bar = '#' * filled_length + '-' * (bar_length - filled_length)
 
+    
     if(speed != 0):
         remTime = ftSize / speed
+    else:
+        remTime = 3600
     timeUnit = 's'
     if(remTime > 60):
         remTime /= 60.0
