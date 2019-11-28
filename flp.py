@@ -282,7 +282,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
 
         elapsedTimeStr = str.format("%.3f" % (elapsedTime))
             
-        print "\nIt was downloaded in ", elapsedTimeStr, elapsedTimeUnit
+        print "\nIt was downloaded in ", elapsedTimeStr, elapsedTimeUnit, "\n"
         
     else:
         str_format = "{0:." + str(decimals) + "f}"
