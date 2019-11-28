@@ -21,12 +21,12 @@ Add directory to shared directories.
 Remove directory from shared directories.
 
 ### getfile
-*getfile \<network interface> \<address> \<remotepath> \<localpath>*
+*getfile \<network interface> \<server address> \<remotepath> \<localpath>*
 
 Download a file from the ‘remotepath’ to the ‘localpath’ from the target address over a network interface.
   
 ### getdir
-*getdir \<network interface> \<address>*
+*getdir \<network interface> \<server address>*
 
 Request the paths of all the files inside the shared directories from the target address over a network interface.
 
