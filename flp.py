@@ -125,9 +125,6 @@ def dirIsMounted(dirPath):
                 return True
         file.close()
     return False
-    
-    
-    
 
 def crc(fileName):
     prev = 0
@@ -411,6 +408,10 @@ def share(interface):
     initRawServer()
  
 def mount(path):
+	if path.endswith("/")
+		print "Path cannot end with /"
+		return False
+
     # Make sure the path is not in the active mounts list.
     if dirIsMounted(path):
         print "Path", path, "is already mounted."
