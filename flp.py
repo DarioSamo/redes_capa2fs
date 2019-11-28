@@ -303,7 +303,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
             remTime /= 60.0
             timeUnit = 'h'
 
-        remTimeStr = str.format(".3f" % (remTime))
+        remTimeStr = str.format("%.3f" % (remTime))
             
         unit = 'B'
         if(speed >= 1024): # if greater than 1k
