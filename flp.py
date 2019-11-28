@@ -53,15 +53,15 @@ def showHelp():
     print('#--------------------------------------------------#')
     print('####################################################')
     print('\nCommands:\n')
-    print('share ')
+    print('share <network interface>')
     print(' Starts the sharing server and listens to requests on the specified network interface.\n')
-    print('mount ')
+    print('mount <dir path>')
     print(' Adds a path to the list of shared directories.\n')
-    print('unmount ')
+    print('unmount <dir path>')
     print(' Removes a path from the list of shared directories.\n')
-    print('getdir ')
-    print(" Gets the list of files available from the server at .\n")
-    print('getfile ')
+    print('getdir <network interface> <server address>')
+    print(" Gets the list of files available from the server.\n")
+    print('getfile <network interface> <server address> <remotepath> <localpath>')
     print(" Downloads the file at from the server at and saves it to .")
  
 def handleGetdir(dest):
@@ -86,10 +86,9 @@ def handleGetdir(dest):
     rawSocket.send(message, dest)
  
 def handleGetfile(data, dest):
-    # TODO: Validate if remotepath is a file inside one of the mounted directories.
     message = bytearray()
     remotepath = decodeStr(data)
-    if os.path.isfile(remotepath):
+    if os.path.isfile(remotepath) and dirFromFilePathIsMounted(remotepath):
         filesize = os.path.getsize(remotepath)
         filehash = crc(remotepath)
         message.append(FILE)
@@ -100,6 +99,28 @@ def handleGetfile(data, dest):
         message.extend(remotepath.encode("utf-8"))
        
     rawSocket.send(message, dest)
+
+def dirFromFilePathIsMounted(filePath):
+    if(os.path.isdir(filePath)): #its a directory instead of a file
+        return False
+    posDirEnd = path.rindex("/")
+    dirPath = path[:posDirEnd]
+    
+    return dirIsMounted(dirPath)
+
+def dirIsMounted(dirPath):
+    #Checks if the dir is mounted
+    if os.path.isfile(MOUNTS_LIST) & os.path.isdir(dirPath):
+        file = open(MOUNTS_LIST, "r")
+        for line in file:
+            if line.rstrip() == dirPath:
+                file.close()
+                return True
+        file.close()
+    return False
+    
+    
+    
 
 def crc(fileName):
     prev = 0
@@ -135,17 +156,18 @@ def handleGetblk(data, dest):
  
 def handleDir(data):
     if ord(data[0]) == 0:
-        print "> END"
+        print("> END")
         sys.exit()
     else:
         remotePath = decodeStr(data)
-        print ">", remotePath
+        print(">", remotePath)
  
 def handleFile(data):
     global ftSeqSize
     global ftSeqCount #Block amount
     global ftFinSeqCount #Finished blocks
     global ftSize
+    global ftSizeStr
     global ftHash
     global ftProgress
     packSize = struct.calcsize(FILE_FORMAT)
@@ -157,9 +179,20 @@ def handleFile(data):
     ftFinSeqCount = 0
     ftProgress = [0] * ftSeqCount
     remotePath = decodeStr(data[packSize:])
+
+    auxSize = ftSize
+    unit = 'B'
+    if(auxSize > 1024): # if greater than 1k
+        auxSize /= 1024.0#format KBps
+        unit = 'KB'
+    if(auxSize > 1024): # if greather than 1mega
+        auxSize /= 1024.0 #format MBps
+        unit = 'MB'
+    ftSizeStr = auxSize + unit
+    
     start_timer_downloadspeed(ftFinSeqCount) #starts download speed's timer
 
- 
+    
     # Create empty file for writing.
     file = open(ftPath, "wb")
     file.seek(ftSize - 1)
@@ -168,7 +201,7 @@ def handleFile(data):
  
 def handleFnf(data):
     remotePath = decodeStr(data)
-    print "File not found in destination:", remotePath
+    print("File not found in destination:", remotePath)
     sys.exit(1)
  
 def handleBlk(data):
@@ -193,15 +226,17 @@ def handleBlk(data):
         file.close()
         ftProgress[seqn] = 2
         ftActiveBlocks += 1
-	ftFinSeqCount += 1
+        ftFinSeqCount += 1
 
 def start_timer_downloadspeed(lastFinSeqCount):
     global ftFinSeqCount
     global ftSeqCount
+    
     speed = (ftFinSeqCount - lastFinSeqCount) * SEQUENCE_SIZE / UPDATE_DOWNLOADSPEED_DELAY
+    
     if(ftFinSeqCount < ftSeqCount): #si es menor, no termino todavia
-	timer = threading.Timer(UPDATE_DOWNLOADSPEED_DELAY, start_timer_downloadspeed,[ftFinSeqCount])
-	timer.start() 
+        timer = threading.Timer(UPDATE_DOWNLOADSPEED_DELAY, start_timer_downloadspeed,[ftFinSeqCount])
+        timer.start() 
     print_progressbar(ftFinSeqCount, ftSeqCount, speed, decimals=1)
    
 # Print iterations progress
@@ -216,23 +251,49 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
         decimals    - Optional  : positive number of decimals in percent complete (Int)
         bar_length  - Optional  : character length of bar (Int)
     """
+    global ftSize
+    global ftSizeStr
+
     str_format = "{0:." + str(decimals) + "f}"
     percents = str_format.format(100 * (iteration / float(total)))
     filled_length = int(round(bar_length * iteration / float(total)))
     bar = '#' * filled_length + '-' * (bar_length - filled_length)
 
+    if(speed != 0):
+        remTime = ftSize / speed
+    timeUnit = 's'
+    if(remTime > 60):
+        remTime /= 60.0
+        timeUnit = 'm'
+    if(remTime > 60):
+        remTime /= 60.0
+        timeUnit = 'h'
+
+        
     unit = 'B'
     if(speed > 1024): # if greater than 1k
         speed /= 1024.0#format KBps
-	unit = 'KB'
+        unit = 'KB'
     if(speed > 1024): # if greather than 1mega
-	speed /= 1024.0 #format MBps
-	unit = 'MB'
+        speed /= 1024.0 #format MBps
+        unit = 'MB'
 
+    downSize = iteration * SEQUENCE_SIZE
+    unit2 = 'B'
+    if(downSize > 1024): # if greater than 1k
+        downSize /= 1024.0#format KBps
+        unit2 = 'KB'
+    if(downSize > 1024): # if greather than 1mega
+        downSize /= 1024.0 #format MBps
+        unit2 = 'MB'
+    
     sys.stdout.write('\r%s |%s| %s%s [%.2f %s/s]  ' % (prefix, bar, percents, '%', speed, unit)),
     #                                           ^^ these are totally necessary, pls do not delete
+    sys.stdout.write('\r [%.2f %s/%s] ETA %s %s    ' % ( iteration * SEQUENCE_SIZE,unit2, ftSizeStr, percents, remTime, timeUnit)),
+    #                                     ^^^^ these are totally necessary, pls do not delete
     if iteration == total:
         sys.stdout.write('\n')
+    sys.stdout.flush()
     sys.stdout.flush()
  
  
@@ -268,7 +329,6 @@ def checkActiveFt(dest):
             else:
                 print("Hash error, quitting...")
                 sys.exit()
-#TODO QUE REINICIE LA WEA
  
 class SharingHandler(RawRequestHandler):
     def handle(self):
@@ -291,7 +351,7 @@ class SharingHandler(RawRequestHandler):
             handleBlk(data)
             checkActiveFt(self.packet.src)
         else:
-            print "Received unknown header", header
+            print("Received unknown header", header)
  
 def createRawSocket(interface):
     global rawSocket
@@ -309,30 +369,26 @@ def stopRawServer():
     rawServer.running = False
  
 def share(interface):
-    print "Sharing files on network interface", interface
+    print("Sharing files on network interface", interface)
     createRawSocket(interface)
     createRawServer(interface)
     initRawServer()
  
 def mount(path):
     # Make sure the path is not in the active mounts list.
-    if os.path.isfile(MOUNTS_LIST):
-        file = open(MOUNTS_LIST, "r")
-        for line in file:
-            if line.rstrip() == path:
-                print "Path", path, "is already mounted."
-                file.close()
-                return False
- 
+    if dirIsMounted(path):
+        print("Path", path, "is already mounted.")
+        return False
+        
     # Append the new directory to the end of the file.
     if os.path.isdir(path):
         file = open(MOUNTS_LIST, "a")
         file.write(path + "\n")
         file.close()
-        print "Mounted", path, "successfully."
+        print("Mounted", path, "successfully.")
         return True
     else:
-        print "Path", path, "is not a valid directory."
+        print("Path", path, "is not a valid directory.")
         return False
  
 def unmount(path):
@@ -352,9 +408,9 @@ def unmount(path):
             file = open(MOUNTS_LIST, "w")
             file.writelines(lines)
             file.close()
-            print "Unmounted", path, "successfully."
+            print ("Unmounted", path, "successfully.")
         else:
-            print "Path", path, "not found in mount list."
+            print ("Path", path, "not found in mount list.")
  
 def getdir(interface, mac):
     createRawSocket(interface)
