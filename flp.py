@@ -27,6 +27,11 @@ FILE    = '\x21'
 FNF     = '\x22'
 GETBLK  = '\x30'
 BLK     = '\x31'
+
+
+#Console display
+CURSOR_UP_ONE = '\x1b[1A'
+ERASE_LINE = '\x1b[2K'
  
 # Global variables
 rawSocket = None
@@ -262,8 +267,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
     global ftStartDatetime
     
     if iteration == total: #download finished
-        sys.stdout.flush()
-        sys.stdout.flush()
+        deleteLastLines(2)
         sys.stdout.write('\nThe file (%s) was successfully downloaded at %s' % (ftSizeStr, ftPath))
         elapsedDatetime =(datetime.datetime.now() - ftStartDatetime)
         elapsedTime = elapsedDatetime.seconds + elapsedDatetime.microseconds/1000000.0
@@ -322,9 +326,14 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
         sys.stdout.write('\n [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, remTime, timeUnit)),
         #                                     ^^^^ these are totally necessary, pls do not delete
         
-        sys.stdout.flush()
-        sys.stdout.flush()
+        deleteLastLines(2)
  
+
+def deleteLastLines(n=1):
+    sys.stdout.write("\n")
+    for _ in range(n):
+        sys.stdout.write(CURSOR_UP_ONE)
+        sys.stdout.write(ERASE_LINE)
  
  
 def checkActiveFt(dest):
