@@ -303,6 +303,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
             remTime /= 60.0
             timeUnit = 'h'
 
+        remTimeStr = str.format(".3f" % (remTime))
             
         unit = 'B'
         if(speed >= 1024): # if greater than 1k
@@ -323,14 +324,13 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
         
         sys.stdout.write('\n%s |%s| %s%s [%.1f %s/s]  ' % (prefix, bar, percents, '%', speed, unit)),
         #                                           ^^ these are totally necessary, pls do not delete
-        sys.stdout.write('\n [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, remTime, timeUnit)),
+        sys.stdout.write('\n [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, remTimeStr, timeUnit)),
         #                                     ^^^^ these are totally necessary, pls do not delete
         
         deleteLastLines(2)
  
 
 def deleteLastLines(n=1):
-    sys.stdout.write("\n")
     for _ in range(n):
         sys.stdout.write(CURSOR_UP_ONE)
         sys.stdout.write(ERASE_LINE)
