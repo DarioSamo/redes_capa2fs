@@ -268,7 +268,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
     
     if iteration == total: #download finished
         deleteLastLines(2)
-        sys.stdout.write('\nThe file (%s) was successfully downloaded at %s' % (ftSizeStr, ftPath))
+        sys.stdout.write('\n\n\n\nThe file (%s) was successfully downloaded at %s' % (ftSizeStr, ftPath))
         elapsedDatetime =(datetime.datetime.now() - ftStartDatetime)
         elapsedTime = elapsedDatetime.seconds + elapsedDatetime.microseconds/1000000.0
 
@@ -282,7 +282,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
 
         elapsedTimeStr = str.format("%.3f" % (elapsedTime))
             
-        print "\n\n\n\nIt was downloaded in ", elapsedTimeStr, elapsedTimeUnit, "\n"
+        print "\nIt was downloaded in ", elapsedTimeStr, elapsedTimeUnit, "\n"
         
     else:
         str_format = "{0:." + str(decimals) + "f}"
