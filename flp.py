@@ -40,7 +40,7 @@ ftSize = 0
 ftHash = None
 ftProgress = []
 ftActiveBlocks = MAX_ACTIVE_BLOCKS
-ftStartDatetime
+ftStartDatetime = None
  
 def decodeStr(data):
     return data.decode("utf-8").partition(b'\0')[0]
