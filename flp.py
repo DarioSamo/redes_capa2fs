@@ -103,8 +103,8 @@ def handleGetfile(data, dest):
 def dirFromFilePathIsMounted(filePath):
     if(os.path.isdir(filePath)): #its a directory instead of a file
         return False
-    posDirEnd = path.rindex("/")
-    dirPath = path[:posDirEnd]
+    posDirEnd = filePath.rindex("/")
+    dirPath = filePath[:posDirEnd]
     
     return dirIsMounted(dirPath)
 
@@ -156,11 +156,11 @@ def handleGetblk(data, dest):
  
 def handleDir(data):
     if ord(data[0]) == 0:
-        print("> END")
+        print "> END"
         sys.exit()
     else:
         remotePath = decodeStr(data)
-        print(">", remotePath)
+        print ">", remotePath
  
 def handleFile(data):
     global ftSeqSize
@@ -201,7 +201,7 @@ def handleFile(data):
  
 def handleFnf(data):
     remotePath = decodeStr(data)
-    print("File not found in destination:", remotePath)
+    print "File not found in destination:", remotePath
     sys.exit(1)
  
 def handleBlk(data):
@@ -327,7 +327,7 @@ def checkActiveFt(dest):
                 print_progressbar(1, 1, 0, decimals=1) #prints a hard-coded full progressbar :P
                 sys.exit()
             else:
-                print("Hash error, quitting...")
+                print "Hash error, quitting..."
                 sys.exit()
  
 class SharingHandler(RawRequestHandler):
@@ -351,7 +351,7 @@ class SharingHandler(RawRequestHandler):
             handleBlk(data)
             checkActiveFt(self.packet.src)
         else:
-            print("Received unknown header", header)
+            print "Received unknown header", header
  
 def createRawSocket(interface):
     global rawSocket
@@ -369,7 +369,7 @@ def stopRawServer():
     rawServer.running = False
  
 def share(interface):
-    print("Sharing files on network interface", interface)
+    print "Sharing files on network interface", interface
     createRawSocket(interface)
     createRawServer(interface)
     initRawServer()
@@ -377,7 +377,7 @@ def share(interface):
 def mount(path):
     # Make sure the path is not in the active mounts list.
     if dirIsMounted(path):
-        print("Path", path, "is already mounted.")
+        print "Path", path, "is already mounted."
         return False
         
     # Append the new directory to the end of the file.
@@ -385,10 +385,10 @@ def mount(path):
         file = open(MOUNTS_LIST, "a")
         file.write(path + "\n")
         file.close()
-        print("Mounted", path, "successfully.")
+        print "Mounted", path, "successfully."
         return True
     else:
-        print("Path", path, "is not a valid directory.")
+        print "Path", path, "is not a valid directory."
         return False
  
 def unmount(path):
@@ -408,9 +408,9 @@ def unmount(path):
             file = open(MOUNTS_LIST, "w")
             file.writelines(lines)
             file.close()
-            print ("Unmounted", path, "successfully.")
+            print "Unmounted", path, "successfully."
         else:
-            print ("Path", path, "not found in mount list.")
+            print "Path", path, "not found in mount list."
  
 def getdir(interface, mac):
     createRawSocket(interface)
