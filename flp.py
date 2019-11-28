@@ -285,9 +285,11 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
         filled_length = int(round(bar_length * iteration / float(total)))
         bar = '#' * filled_length + '-' * (bar_length - filled_length)
 
+
+        downSize = iteration * SEQUENCE_SIZE
         
         if(speed != 0):
-            remTime = ftSize / speed
+            remTime = (ftSize - downSize) / speed
         else:
             remTime = 3600
         timeUnit = 's'
@@ -308,7 +310,7 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
             speed /= 1024.0 #format MBps
             unit = 'MB'
 
-        downSize = iteration * SEQUENCE_SIZE
+        
         unit2 = 'B'
         if(downSize >= 1024): # if greater than 1k
             downSize /= 1024.0#format KBps
