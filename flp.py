@@ -4,6 +4,7 @@ import struct
 import sys
 import threading #for the timer
 import zlib #crc32
+import datetime #timestamps
 
 # Configuration
 MOUNTS_LIST = 'mounts.flp'
@@ -39,6 +40,7 @@ ftSize = 0
 ftHash = None
 ftProgress = []
 ftActiveBlocks = MAX_ACTIVE_BLOCKS
+ftStartDatetime
  
 def decodeStr(data):
     return data.decode("utf-8").partition(b'\0')[0]
@@ -171,6 +173,8 @@ def handleFile(data):
     global ftSizeStr
     global ftHash
     global ftProgress
+    global ftStartDatetime
+    
     packSize = struct.calcsize(FILE_FORMAT)
     unpacked = struct.unpack(FILE_FORMAT, data[0:packSize])
     ftSize = unpacked[0]
@@ -190,9 +194,10 @@ def handleFile(data):
         auxSize /= 1024.0 #format MBps
         unit = 'MB'
     ftSizeStr = str.format("%.1f" % auxSize) + " " + unit
-    
+
     start_timer_downloadspeed(ftFinSeqCount) #starts download speed's timer
 
+    ftStartDatetime = datetime.datetime.now()
     
     # Create empty file for writing.
     file = open(ftPath, "wb")
@@ -254,51 +259,65 @@ def print_progressbar(iteration, total, speed, prefix='Downloading', decimals=1,
     """
     global ftSize
     global ftSizeStr
-
-    str_format = "{0:." + str(decimals) + "f}"
-    percents = str_format.format(100 * (iteration / float(total)))
-    filled_length = int(round(bar_length * iteration / float(total)))
-    bar = '#' * filled_length + '-' * (bar_length - filled_length)
-
+    global ftStartDatetime
     
-    if(speed != 0):
-        remTime = ftSize / speed
+    if iteration == total: #download finished
+        sys.stdout.flush()
+        sys.stdout.flush()
+        sys.stdout.write('\nThe file (%s) was successfully downloaded at %s' % (ftSizeStr, ftPath))
+        ftElapsedDT = datetime.datetime.now() - ftStartDatetime
+        print "\nIt was downloaded in "
+        if(ftElapsedDT.hours > 0):
+            print ftElapsedDT.hours, "hours "
+        if(ftElapsedDT.minutes > 0):
+            print ftElapsedDT.minutes, "minutes "
+        if(ftElapsedDT.seconds > 0):
+            print ftElapsedDT.seconds, "seconds "
+        print ".\n"
     else:
-        remTime = 3600
-    timeUnit = 's'
-    if(remTime > 60):
-        remTime /= 60.0
-        timeUnit = 'm'
-    if(remTime > 60):
-        remTime /= 60.0
-        timeUnit = 'h'
+        str_format = "{0:." + str(decimals) + "f}"
+        percents = str_format.format(100 * (iteration / float(total)))
+        filled_length = int(round(bar_length * iteration / float(total)))
+        bar = '#' * filled_length + '-' * (bar_length - filled_length)
 
         
-    unit = 'B'
-    if(speed > 1024): # if greater than 1k
-        speed /= 1024.0#format KBps
-        unit = 'KB'
-    if(speed > 1024): # if greather than 1mega
-        speed /= 1024.0 #format MBps
-        unit = 'MB'
+        if(speed != 0):
+            remTime = ftSize / speed
+        else:
+            remTime = 3600
+        timeUnit = 's'
+        if(remTime >= 60):
+            remTime /= 60.0
+            timeUnit = 'm'
+        if(remTime >= 60):
+            remTime /= 60.0
+            timeUnit = 'h'
 
-    downSize = iteration * SEQUENCE_SIZE
-    unit2 = 'B'
-    if(downSize > 1024): # if greater than 1k
-        downSize /= 1024.0#format KBps
-        unit2 = 'KB'
-    if(downSize > 1024): # if greather than 1mega
-        downSize /= 1024.0 #format MBps
-        unit2 = 'MB'
-    
-    sys.stdout.write('\r%s |%s| %s%s [%.1f %s/s]  ' % (prefix, bar, percents, '%', speed, unit)),
-    #                                           ^^ these are totally necessary, pls do not delete
-    sys.stdout.write('\r [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, remTime, timeUnit)),
-    #                                     ^^^^ these are totally necessary, pls do not delete
-    if iteration == total:
-        sys.stdout.write('\n')
-    sys.stdout.flush()
-    sys.stdout.flush()
+            
+        unit = 'B'
+        if(speed >= 1024): # if greater than 1k
+            speed /= 1024.0#format KBps
+            unit = 'KB'
+        if(speed >= 1024): # if greather than 1mega
+            speed /= 1024.0 #format MBps
+            unit = 'MB'
+
+        downSize = iteration * SEQUENCE_SIZE
+        unit2 = 'B'
+        if(downSize >= 1024): # if greater than 1k
+            downSize /= 1024.0#format KBps
+            unit2 = 'KB'
+        if(downSize >= 1024): # if greather than 1mega
+            downSize /= 1024.0 #format MBps
+            unit2 = 'MB'
+        
+        sys.stdout.write('\n%s |%s| %s%s [%.1f %s/s]  ' % (prefix, bar, percents, '%', speed, unit)),
+        #                                           ^^ these are totally necessary, pls do not delete
+        sys.stdout.write('\n [%.1f %s/%s] ETA %s %s    ' % (downSize ,unit2, ftSizeStr, remTime, timeUnit)),
+        #                                     ^^^^ these are totally necessary, pls do not delete
+        
+        sys.stdout.flush()
+        sys.stdout.flush()
  
  
  
