@@ -111,8 +111,7 @@ def dirFromFilePathIsMounted(filePath):
     if(os.path.isdir(filePath)): #its a directory instead of a file
         return False
     posDirEnd = filePath.rindex("/") 
-    dirPath = filePath[:(posDirEnd + 1)]
-    #+1 to transform from [0,n] scale to [1,n+1] scale expected in [:]
+    dirPath = filePath[:posDirEnd]
     
     return dirIsMounted(dirPath)
 
